@@ -1,6 +1,13 @@
 from bs4 import BeautifulSoup
 import requests
 import re
+from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
+from kivy.config import Config
+Config.set('graphics', 'width', '192')
+Config.set('graphics', 'height', '108')
+Config.set('graphics', 'resizable', False)
+
 
 # Gets info on the given artist from Genius API
 def get_artist_info(artist_name, page):
@@ -52,3 +59,18 @@ def write_lyrics_to_file(artist_name):
         lyrics = scrape_lyrics(url)
         f.write(lyrics)
     f.close()
+
+
+
+
+# Defines the App class, only there to be read by kivy
+class InputBox(BoxLayout):
+    pass
+
+
+class LyricsScraper(App):
+    def build(self):
+        return InputBox()
+
+if __name__ == '__main__':
+    LyricsScraper().run()
