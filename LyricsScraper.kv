@@ -2,6 +2,7 @@
     orientation: 'vertical'
     padding: [20, 20, 20, 20]
     TextInput:
+        id: input_text
         multiline: False
         font_size: 20
     Button:
@@ -9,3 +10,5 @@
         text: 'Visualize'
         background_color: 1, 1, 1, 1
         font_size: 20
+        on_press: root.write_lyrics_to_file(input_text.text)
+        on_release: app.stop()
