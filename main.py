@@ -19,6 +19,7 @@ def get_artist_info(artist_name, page):
     response = requests.get(search_url, data=data, headers=headers)
     return response
 
+
 # Returns a list of Genius URLs of all the artist's songs
 def get_song_urls(artist_name):
     page = 1
@@ -32,7 +33,7 @@ def get_song_urls(artist_name):
         # Collects all Genius URLs of the artist's songs
         for hit in json['response']['hits']:
             if artist_name.lower() in hit['result']['primary_artist']['name'].lower():
-                    song_urls.append(hit['result']['url'])
+                song_urls.append(hit['result']['url'])
 
         # Breaks if no new songs were added, if not goes on to the next page
         num_of_songs.append(len(song_urls))
@@ -43,6 +44,7 @@ def get_song_urls(artist_name):
 
     return song_urls
 
+
 # Scrapes lyrics from Genius URLs
 def scrape_lyrics(url):
     page = requests.get(url)
@@ -51,26 +53,23 @@ def scrape_lyrics(url):
     lyrics = ''.join(re.sub('\[(.*?)\]', '', section.get_text(" ")) for section in lyrics)
     return lyrics
 
-# Writes all the lyrics to a file
-def write_lyrics_to_file(artist_name):
-    f = open(f'{artist_name.lower()}.txt', 'w+', encoding='utf-8')
-    urls = get_song_urls(artist_name)
-    for url in urls:
-        lyrics = scrape_lyrics(url)
-        f.write(lyrics)
-    f.close()
 
-
-
-
-# Defines the App class, only there to be read by kivy
 class InputBox(BoxLayout):
+    # Writes all the lyrics to a file
+    def write_lyrics_to_file(self, artist_name):
+        f = open(f'{artist_name.lower()}.txt', 'w+', encoding='utf-8')
+        urls = get_song_urls(artist_name)
+        for url in urls:
+            lyrics = scrape_lyrics(url)
+            f.write(lyrics)
+        f.close()
     pass
 
 
 class LyricsScraper(App):
     def build(self):
         return InputBox()
+
 
 if __name__ == '__main__':
     LyricsScraper().run()
