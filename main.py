@@ -3,7 +3,7 @@ import requests
 import re
 
 # Gets info on the given artist from Genius API
-def get_info(artist_name, page):
+def get_artist_info(artist_name, page):
     base_url = 'https://api.genius.com'
     access_token = 'u9Y8tPQWDHXFRKSSYArtObxN1gbc_HTdyfx4y3rMyVb6jJOCPA3qkHVI4SNC3Pcx'
     headers = {'Authorization': 'Bearer ' + access_token}
@@ -13,13 +13,13 @@ def get_info(artist_name, page):
     return response
 
 # Returns a list of Genius URLs of all the artist's songs
-def get_urls(artist_name):
+def get_song_urls(artist_name):
     page = 1
     num_of_songs = [0]
     song_urls = []
 
     while True:
-        response = get_info(artist_name, page)
+        response = get_artist_info(artist_name, page)
         json = response.json()
 
         # Collects all Genius URLs of the artist's songs
@@ -47,7 +47,7 @@ def scrape_lyrics(url):
 # Writes all the lyrics to a file
 def write_lyrics_to_file(artist_name):
     f = open(f'{artist_name.lower()}.txt', 'w+', encoding='utf-8')
-    urls = get_urls(artist_name)
+    urls = get_song_urls(artist_name)
     for url in urls:
         lyrics = scrape_lyrics(url)
         f.write(lyrics)
