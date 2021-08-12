@@ -1,6 +1,8 @@
 from bs4 import BeautifulSoup
+from nltk.corpus import wordnet as wn
 import requests
 import re
+import matplotlib.pyplot as plt
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.config import Config
@@ -50,20 +52,81 @@ def scrape_lyrics(url):
     page = requests.get(url)
     soup = BeautifulSoup(page.text, 'html.parser')
     lyrics = soup.find_all('div', class_='Lyrics__Container-sc-1ynbvzw-8 eOLwDW')
-    lyrics = ''.join(re.sub('\[(.*?)\]', '', section.get_text(" ")) for section in lyrics)
-    return lyrics
+    lyrics = ''.join(re.sub('\[(.*?)\]', '', section.get_text(" ").lower()) for section in lyrics)
+    return re.sub('[?,!)(:;]', '', lyrics)
+
+
+# Writes all the lyrics to a file
+def write_lyrics_to_file(artist_name):
+    f = open(f'{artist_name.lower()}.txt', 'w+', encoding='utf-8')
+    urls = get_song_urls(artist_name)
+    for url in urls:
+        lyrics = scrape_lyrics(url)
+        f.write(lyrics)
+    f.close()
 
 
 class InputBox(BoxLayout):
-    # Writes all the lyrics to a file
-    def write_lyrics_to_file(self, artist_name):
-        f = open(f'{artist_name.lower()}.txt', 'w+', encoding='utf-8')
-        urls = get_song_urls(artist_name)
-        for url in urls:
-            lyrics = scrape_lyrics(url)
-            f.write(lyrics)
-        f.close()
-    pass
+    def visualize_lyrics_data(self, artist_name):
+        write_lyrics_to_file(artist_name)
+        f = open(f'{artist_name.lower()}.txt', 'r+', encoding='utf-8')
+
+        # Creates a dict with the lyrics and # of  occurrences
+        lyric_frequency = {}
+        for lyric in f.read().split():
+            if lyric in lyric_frequency:
+                lyric_frequency[lyric] += 1
+            else:
+                lyric_frequency[lyric] = 1
+
+        # List of nouns
+        nouns = {x.name().split('.', 1)[0] for x in wn.all_synsets('n')}
+
+        # Sorts lyrics by frequency
+        asc_lyric_frequency = sorted(lyric_frequency.items(), key=lambda x: x[-1], reverse=True)
+        desc_lyric_frequency = sorted(lyric_frequency.items(), key=lambda x: x[-1], reverse=False)
+
+        most_common_lyrics = [value[0] for value in asc_lyric_frequency[:14]]
+        most_common_occurrences = [value[1] for value in asc_lyric_frequency[:14]]
+
+        least_common_lyrics = [value[0] for value in desc_lyric_frequency[:14]]
+        least_common_occurrences = [value[1] for value in desc_lyric_frequency[:14]]
+
+        most_common_nouns = []
+        most_common_nouns_occurrences = []
+
+        # Checks if lyrics are nouns and puts them in most_common_nouns
+        while True:
+            print(len(most_common_nouns))
+            for value in asc_lyric_frequency:
+                if value[0] in nouns:
+                    most_common_nouns.append(value[0])
+                if len(most_common_nouns) == 15:
+                    break
+            break
+
+        # Appends the corresponding frequency of said nouns to most_common_noun_occurrences
+        while True:
+            print(len(most_common_nouns_occurrences))
+            for value in asc_lyric_frequency:
+                if value[0] in most_common_nouns:
+                    most_common_nouns_occurrences.append(value[1])
+                if len(most_common_nouns_occurrences) == 20:
+                    break
+            break
+
+        # Creates a 2x2 grid of graphs and plots them
+        figure, axis = plt.subplots(2, 2)
+        axis[0, 0].bar(most_common_lyrics, most_common_occurrences)
+        axis[0, 0].set_title("Most Common Lyrics")
+
+        axis[1, 0].bar(least_common_lyrics, least_common_occurrences)
+        axis[1, 0].set_title("Least Common Lyrics")
+
+        axis[0, 1].bar(most_common_nouns, most_common_nouns_occurrences)
+        axis[0, 1].set_title("Most Common Nouns")
+
+        plt.show()
 
 
 class LyricsScraper(App):
