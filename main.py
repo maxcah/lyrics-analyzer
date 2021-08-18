@@ -79,8 +79,8 @@ class InputBox(BoxLayout):
             else:
                 lyric_frequency[lyric] = 1
 
-        # List of nouns
         nouns = {x.name().split('.', 1)[0] for x in wn.all_synsets('n')}
+        adjectives = {x.name().split('.', 1)[0] for x in wn.all_synsets('v')}
 
         # Sorts lyrics by frequency
         asc_lyric_frequency = sorted(lyric_frequency.items(), key=lambda x: x[-1], reverse=True)
@@ -94,6 +94,9 @@ class InputBox(BoxLayout):
 
         most_common_nouns = []
         most_common_nouns_occurrences = []
+
+        most_common_verbs = []
+        most_common_verbs_occurrences = []
 
         # Checks if lyrics are nouns and puts them in most_common_nouns
         while True:
@@ -115,6 +118,26 @@ class InputBox(BoxLayout):
                     break
             break
 
+        # Checks if lyrics are verbs and puts them in most_common_verbs
+        while True:
+            print(len(most_common_verbs))
+            for value in asc_lyric_frequency:
+                if value[0] in adjectives:
+                    most_common_verbs.append(value[0])
+                if len(most_common_verbs) == 15:
+                    break
+            break
+
+        # Appends the corresponding frequency of said adjectives to most_common_verbs_occurrences
+        while True:
+            print(len(most_common_verbs_occurrences))
+            for value in asc_lyric_frequency:
+                if value[0] in most_common_verbs:
+                    most_common_verbs_occurrences.append(value[1])
+                if len(most_common_verbs_occurrences) == 20:
+                    break
+            break
+
         # Creates a 2x2 grid of graphs and plots them
         figure, axis = plt.subplots(2, 2)
         axis[0, 0].bar(most_common_lyrics, most_common_occurrences)
@@ -126,6 +149,9 @@ class InputBox(BoxLayout):
         axis[0, 1].bar(most_common_nouns, most_common_nouns_occurrences)
         axis[0, 1].set_title("Most Common Nouns")
 
+        axis[1, 1].bar(most_common_verbs, most_common_verbs_occurrences)
+        axis[1, 1].set_title("Most Common Verbs")
+
         plt.show()
 
 
@@ -136,3 +162,4 @@ class LyricsScraper(App):
 
 if __name__ == '__main__':
     LyricsScraper().run()
+    
